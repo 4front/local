@@ -26,6 +26,7 @@
     "4front-apphost": "^1.0.17",
     "4front-dynamodb": "file:../dynamodb",
     "4front-logger": "^1.0.0",
+    "4front-login": "^1.0.0",
     "4front-portal": "0.0.1",
     "4front-s3-deployments": "0.0.2",
     "async": "^0.9.0",

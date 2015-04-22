@@ -28,6 +28,7 @@ program
 	.option('--port [port]', "The port the process should run on", 1903)
 	.option('--virtual-host [virtualHost]', "The virtual host", "4front.dev")
   .option('--https', "Whether https is enabled on the virtual host")
+	.option('--jwt-secret-token [jwtSecretToken]', 'The secret token used to generate JWT for authorization.', 'jwt_secret_token')
   // .option('--deployments-dir [deploymentsDir]', "The directory where deployments should be stored.", path.resolve(__dirname, "../deployments"))
 	.command('start')
 	.description("Start the 4front platform")

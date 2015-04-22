@@ -80,6 +80,11 @@ function startExpressApp(program, callback) {
       }
     });
 
+    app.settings.login = require('4front-login')({
+      identityProvider: app.settings.identityProvider,
+      jwtTokenSecret: program.jwtTokenSecret
+    });
+
     // Static assets. Can be cached for a long time since every asset is
     // fingerprinted with versionId.
     app.use('deployments', express.static(path.resolve(__dirname, "../deployments"), {
