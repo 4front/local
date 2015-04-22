@@ -1,7 +1,7 @@
 {
-  "name": "4front-local-template",
+  "name": "4front-local",
   "version": "1.0.0",
-  "description": "Template for running the 4front platform locally",
+  "description": "Version of the 4front platform intended to run locally for testing",
   "main": "app.js",
   "scripts": {
     "test": "mocha test"
@@ -10,6 +10,10 @@
     "4front",
     "local"
   ],
+  "bin": {
+    "4front": "bin/4front.js"
+  },
+  "preferGlobal": true,
   "author": "David Von Lehman <https://github.com/dvonlehman>",
   "repository": {
     "url": "https://github.com/4front/local-template",
@@ -23,9 +27,12 @@
     "4front-logger": "^1.0.0",
     "4front-s3-deployments": "0.0.2",
     "async": "^0.9.0",
+    "commander": "^2.8.0",
     "express": "^4.12.3",
+    "forever-monitor": "^1.5.2",
     "lodash": "^3.7.0",
     "redis": "^0.12.1",
-    "s3rver": "0.0.2"
+    "s3rver": "0.0.2",
+    "update-notifier": "^0.3.2"
   }
 }
