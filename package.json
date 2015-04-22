@@ -1,17 +1,18 @@
 {
-  "name": "4front-local",
+  "name": "4front-local-platform",
   "version": "1.0.0",
   "description": "Version of the 4front platform intended to run locally for testing",
   "main": "app.js",
   "scripts": {
-    "test": "mocha test"
+    "test": "mocha test",
+    "postinstall": "node ./node_modules/4front-dynamodb/scripts/create-local-tables.js"
   },
   "keywords": [
     "4front",
     "local"
   ],
   "bin": {
-    "4front": "bin/4front.js"
+    "4front-local": "bin/4front.js"
   },
   "preferGlobal": true,
   "author": "David Von Lehman <https://github.com/dvonlehman>",
@@ -22,16 +23,17 @@
   "license": "Apache-2.0",
   "dependencies": {
     "4front-api": "file:../api",
-    "4front-apphost": "file:../apphost",
+    "4front-apphost": "^1.0.17",
     "4front-dynamodb": "file:../dynamodb",
     "4front-logger": "^1.0.0",
+    "4front-portal": "0.0.1",
     "4front-s3-deployments": "0.0.2",
     "async": "^0.9.0",
     "commander": "^2.8.0",
     "express": "^4.12.3",
-    "forever-monitor": "^1.5.2",
+    "jade": "^1.9.2",
     "lodash": "^3.7.0",
-    "redis": "^0.12.1",
+    "memory-cache-stream": "^1.0.3",
     "s3rver": "0.0.2",
     "update-notifier": "^0.3.2"
   }

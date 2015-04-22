@@ -5,7 +5,6 @@ var async = require('async');
 var fs = require('fs');
 var path = require('path');
 var _ = require('lodash');
-var forever = require('forever-monitor');
 var updateNotifier = require('update-notifier');
 var pkg = require('../package.json');
 
@@ -27,17 +26,41 @@ program.version(pkg.version)
 
 program
 	.option('--port [port]', "The port the process should run on", 1903)
-	.option('--virtual-host [virtualHost]', "The virtual host")
+	.option('--virtual-host [virtualHost]', "The virtual host", "4front.dev")
   .option('--https', "Whether https is enabled on the virtual host")
-  .option('--deployments-dir', "The directory where deployments should be stored.", path.resolve(__dirname, "../deployments"))
+  // .option('--deployments-dir [deploymentsDir]', "The directory where deployments should be stored.", path.resolve(__dirname, "../deployments"))
 	.command('start')
 	.description("Start the 4front platform")
-	.action(require('../commands/start.js')(program, done));
+	.action(runCommand('start'));
 
 program
   .option('--name [name]', "The name of the npm package of the plugin")
   .command('--install-plugin')
   .description('Install a middleware plugin')
-  .action(require('../commands/plugin.js')(program, done));
+  .action(runCommand('plugin'));
 
 program.parse(process.argv);
+
+function runCommand(command) {
+	return function() {
+		require('../commands/' + command)(program, function(err, done) {
+	    if (err) {
+	      if (err instanceof Error)
+	        console.error(err.stack || err.toString());
+	      else if (_.isString(err))
+					console.error(err);
+
+	      process.exit();
+	    }
+
+	    if (!_.isFunction(done))
+	      process.exit();
+	    else {
+	      // Wait for SIGINT to cleanup the command
+	      process.on('exit', function() {
+	        done();
+	      });
+	    }
+	  });
+	};
+}
