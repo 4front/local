@@ -32,6 +32,7 @@ function startExpressApp(program, callback) {
   try {
     // The virtual host is the domain that the platform runs, i.e. "myapphost.com"
     app.settings.virtualHost = program.virtualHost;
+    app.settings.jwtTokenSecret = program.jwtTokenSecret;
 
     app.settings.database = new DynamoDb({
       // Leave these values as-is since they are the same values
@@ -62,6 +63,13 @@ function startExpressApp(program, callback) {
       }
     };
 
+    // Configure the login provider
+    app.settings.login = require('4front-login')({
+      database: app.settings.database,
+      identityProvider: app.settings.identityProvider,
+      jwtTokenSecret: program.jwtTokenSecret
+    });
+
     app.settings.deployments = new S3Deployments({
       bucket: "4front-deployments",
       // These values don't actually matter for the fake S3 server
@@ -80,11 +88,6 @@ function startExpressApp(program, callback) {
       }
     });
 
-    app.settings.login = require('4front-login')({
-      identityProvider: app.settings.identityProvider,
-      jwtTokenSecret: program.jwtTokenSecret
-    });
-
     // Static assets. Can be cached for a long time since every asset is
     // fingerprinted with versionId.
     app.use('deployments', express.static(path.resolve(__dirname, "../deployments"), {
@@ -97,7 +100,10 @@ function startExpressApp(program, callback) {
       res.send("4front Local Platform");
     });
 
-    app.use("/api", require('4front-api'));
+    app.use("/api", require('4front-api')({
+      verifyJwtSignature: false
+    }));
+
     app.use("/portal", require('4front-portal')({
       basePath: '/portal'
     }));
