@@ -23,10 +23,11 @@
   "license": "Apache-2.0",
   "dependencies": {
     "4front-api": "file:../api",
+    "4front-app-registry": "file:../app-registry",
     "4front-apphost": "file:../apphost",
     "4front-dynamodb": "file:../dynamodb",
     "4front-logger": "^1.0.1",
-    "4front-login": "^1.0.0",
+    "4front-login": "file:../login",
     "4front-portal": "file:../portal",
     "4front-s3-deployments": "0.0.2",
     "async": "^0.9.0",

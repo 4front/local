@@ -33,6 +33,7 @@ function startExpressApp(program, callback) {
     // The virtual host is the domain that the platform runs, i.e. "myapphost.com"
     app.settings.virtualHost = program.virtualHost;
     app.settings.jwtTokenSecret = program.jwtTokenSecret;
+    app.settings.localInstance = true;
 
     app.settings.database = new DynamoDb({
       // Leave these values as-is since they are the same values
@@ -70,6 +71,8 @@ function startExpressApp(program, callback) {
       jwtTokenSecret: program.jwtTokenSecret
     });
 
+    app.settings.virtualAppRegistry = require('4front-app-registry')();
+
     app.settings.deployments = new S3Deployments({
       bucket: "4front-deployments",
       // These values don't actually matter for the fake S3 server
@@ -105,7 +108,8 @@ function startExpressApp(program, callback) {
     }));
 
     app.use("/portal", require('4front-portal')({
-      basePath: '/portal'
+      basePath: '/portal',
+      localInstance: true
     }));
 
     app.use(apphost.virtualAppLoader);
