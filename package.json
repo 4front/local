@@ -25,7 +25,7 @@
     "4front-api": "file:../api",
     "4front-apphost": "file:../apphost",
     "4front-dynamodb": "file:../dynamodb",
-    "4front-logger": "^1.0.0",
+    "4front-logger": "^1.0.1",
     "4front-login": "^1.0.0",
     "4front-portal": "file:../portal",
     "4front-s3-deployments": "0.0.2",
