@@ -10,8 +10,8 @@ var ChildProcess = require('child_process');
 var DynamoDb = require('4front-dynamodb');
 var S3Deployments = require('4front-s3-deployments');
 var log = require('4front-logger');
-var apphost = require('4front-apphost');
 var memoryCache = require('memory-cache-stream');
+var cookieParser = require('cookie-parser');
 
 module.exports = function(program, callback) {
   initialize(program, function(err) {
@@ -31,10 +31,16 @@ function startExpressApp(program, callback) {
   var app = express();
 
   try {
-    // The virtual host is the domain that the platform runs, i.e. "myapphost.com"
-    app.settings.virtualHost = program.virtualHost;
-    app.settings.jwtTokenSecret = program.jwtTokenSecret;
-    app.settings.localInstance = true;
+    // All 4front config settings are set on the app settings object
+    _.extend(app.settings, {
+      // The virtual host is the domain that the platform runs, i.e. "myapphost.com"
+      virtualHost: program.virtualHost,
+      pluginsDir: path.resolve(__dirname, "../plugins"),
+      localInstance: true,
+      jwtTokenSecret: program.jwtTokenSecret
+    });
+    // other settings: sessionUserKey
+
 
     app.settings.database = new DynamoDb({
       // Leave these values as-is since they are the same values
@@ -105,6 +111,11 @@ function startExpressApp(program, callback) {
 
     app.use(app.settings.logger.request());
 
+    app.use(cookieParser());
+
+    // The virtual app host
+    app.use(require('4front-apphost')());
+
     app.get('/', function(req, res) {
       res.send("4front Local Platform");
     });
@@ -117,12 +128,6 @@ function startExpressApp(program, callback) {
       basePath: '/portal',
       localInstance: true
     }));
-
-    app.use(apphost.virtualAppLoader);
-    app.use(apphost.devSandbox);
-    app.use(apphost.virtualRouter);
-    app.use(apphost.errorFallback);
-
 
     // Start the express server
     // Assuming that SSL cert is terminated upstream by something like Apache, Ngninx, or ELB,
