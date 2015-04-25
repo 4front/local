@@ -4,6 +4,7 @@ var S3rver = require('s3rver');
 var async = require('async');
 var fs = require('fs');
 var path = require('path');
+var debug = require('debug')('4front:local:start');
 var _ = require('lodash');
 var ChildProcess = require('child_process');
 var DynamoDb = require('4front-dynamodb');
@@ -56,8 +57,9 @@ function startExpressApp(program, callback) {
     // something like 4front-active-directory.
     app.settings.identityProvider = {
       name: 'local',
-      login: function(username, password, callback) {
-        callback({
+      authenticate: function(username, password, callback) {
+        debug("authenticate user %s with local identity provider", username);
+        callback(null, {
           userId: username,
           username: username
         });
@@ -71,7 +73,11 @@ function startExpressApp(program, callback) {
       jwtTokenSecret: program.jwtTokenSecret
     });
 
-    app.settings.virtualAppRegistry = require('4front-app-registry')();
+    app.settings.virtualAppRegistry = require('4front-app-registry')({
+      cache: app.settings.cache,
+      database: app.settings.database,
+      virtualHost: app.settings.virtualHost
+    });
 
     app.settings.deployments = new S3Deployments({
       bucket: "4front-deployments",
