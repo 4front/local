@@ -11,7 +11,10 @@ var DynamoDb = require('4front-dynamodb');
 var S3Deployments = require('4front-s3-deployments');
 var log = require('4front-logger');
 var memoryCache = require('memory-cache-stream');
+var redis = require('redis');
 var cookieParser = require('cookie-parser');
+
+require('redis-streams')(redis);
 
 module.exports = function(program, callback) {
   initialize(program, function(err) {
@@ -52,11 +55,13 @@ function startExpressApp(program, callback) {
       // By default DynamoDbLocal runs on port 8000. It is possible to override
       // that with the -port option passed in the dynamo startup command or to the brew command.
       // http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html
-      endpoint: 'http://localhost:8000'
+      endpoint: 'http://localhost:8000',
+      tablePrefix: '4front_'
     });
 
     // Assuming redis is listening on default port
-    app.settings.cache = memoryCache();
+    // app.settings.cache = memoryCache();
+    app.settings.cache = redis.createClient();
 
     // For local development, just using a naive identity provider that
     // echos back the username. In a production deployment you would use
@@ -126,8 +131,14 @@ function startExpressApp(program, callback) {
 
     app.use("/portal", require('4front-portal')({
       basePath: '/portal',
+      apiUrl: '/api',
       localInstance: true
     }));
+
+    // app.use('/debug', require('4front-debug'));
+    // app.use('/debug', function(req, res, next) {
+    //   res.json(app.settings.cache.keys);
+    // });
 
     // Start the express server
     // Assuming that SSL cert is terminated upstream by something like Apache, Ngninx, or ELB,
