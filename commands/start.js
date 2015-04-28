@@ -12,9 +12,20 @@ var S3Deployments = require('4front-s3-deployments');
 var log = require('4front-logger');
 var memoryCache = require('memory-cache-stream');
 var redis = require('redis');
+var AWS = require('aws-sdk');
 var cookieParser = require('cookie-parser');
 
 require('redis-streams')(redis);
+
+var s3Options = {
+  bucket: "deployments",
+  // These values don't actually matter for the fake S3 server
+  accessKeyId: "4front",
+  secretAccessKey: "4front",
+  endpoint: "localhost:4658",
+  sslEnabled: false,
+  s3ForcePathStyle: true
+}
 
 module.exports = function(program, callback) {
   initialize(program, function(err) {
@@ -40,7 +51,8 @@ function startExpressApp(program, callback) {
       virtualHost: program.virtualHost,
       pluginsDir: path.resolve(__dirname, "../plugins"),
       localInstance: true,
-      jwtTokenSecret: program.jwtTokenSecret
+      jwtTokenSecret: program.jwtTokenSecret,
+      defaultVirtualEnvironment: 'production'
     });
     // other settings: sessionUserKey
 
@@ -90,15 +102,7 @@ function startExpressApp(program, callback) {
       virtualHost: app.settings.virtualHost
     });
 
-    app.settings.deployments = new S3Deployments({
-      bucket: "4front-deployments",
-      // These values don't actually matter for the fake S3 server
-      accessKeyId: "123",
-      secretAccessKey: "abc",
-      endpoint: "localhost:4658",
-      sslEnabled: false,
-      s3ForcePathStyle: true
-    });
+    app.settings.deployments = new S3Deployments(s3Options);
 
     app.settings.logger = require('4front-logger')({
       logger: '4front-logger',
@@ -110,9 +114,19 @@ function startExpressApp(program, callback) {
 
     // Static assets. Can be cached for a long time since every asset is
     // fingerprinted with versionId.
-    app.use('deployments', express.static(path.resolve(__dirname, "../deployments"), {
-      maxAge: '30d'
-    }));
+    app.get('/deployments/:appId/:versionId/*', function(req, res, next) {
+      var filePath = req.path.split('/').slice(3).join('/');
+
+      var readStream = app.settings.deployments.readFileStream(
+        req.params.appId, req.params.versionId, filePath);
+
+      readStream.on('missing', function() {
+        return res.status(404).send("Page not found");
+      });
+
+      res.set('Cache-Control', 'max-age=' + (60 * 60 * 24 * 30));
+      readStream.pipe(res);
+    });
 
     app.use(app.settings.logger.request());
 
@@ -165,9 +179,20 @@ function initialize(program, callback) {
       var s3rver = new S3rver();
       s3rver.setHostname('localhost')
         .setPort(4658)
-        .setDirectory(program.deploymentsDir)
+        .setDirectory(path.resolve(__dirname, '../'))
         .run(cb);
     },
+    // function(cb) {
+    //   // Ensure the bucket exists
+    //   var bucket = s3Options.bucket;
+    //   var s3 = new AWS.S3(_.omit(s3Options, 'bucket'));
+    //   s3.createBucket({ACL: 'public-read', Bucket: bucket}, function(err) {
+    //   	if (err && err.code !== 'BucketAlreadyExists')
+    //   		return cb(err);
+    //
+    //   	cb();
+    //   });
+    // },
     function(cb) {
       // Not worrying about checking on windows for the time being.
       if (process.platform.indexOf('win32') !== -1)
