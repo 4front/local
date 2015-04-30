@@ -52,7 +52,11 @@ function startExpressApp(program, callback) {
       pluginsDir: path.resolve(__dirname, "../plugins"),
       localInstance: true,
       jwtTokenSecret: program.jwtTokenSecret,
-      defaultVirtualEnvironment: 'production'
+      defaultVirtualEnvironment: 'production',
+      // Normally this would be an absolute S3 url or a CDN whose origin is set to
+      // the S3 bucket, but for 4front local just serving static assets out of
+      // the same Express app.
+      staticAssetPath: '/deployments/'
     });
     // other settings: sessionUserKey
 
@@ -68,7 +72,11 @@ function startExpressApp(program, callback) {
       // that with the -port option passed in the dynamo startup command or to the brew command.
       // http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html
       endpoint: 'http://localhost:8000',
-      tablePrefix: '4front_'
+      tablePrefix: '4front_',
+
+      // Used to encrypt/decrypt sensitive values. Currently used for environment variables that
+      // were specified as enrypted.
+      cryptoPassword: '4front_crypto_password'
     });
 
     // Assuming redis is listening on default port
@@ -115,7 +123,7 @@ function startExpressApp(program, callback) {
     // Static assets. Can be cached for a long time since every asset is
     // fingerprinted with versionId.
     app.get('/deployments/:appId/:versionId/*', function(req, res, next) {
-      var filePath = req.path.split('/').slice(3).join('/');
+      var filePath = req.params[0];
 
       var readStream = app.settings.deployments.readFileStream(
         req.params.appId, req.params.versionId, filePath);
@@ -124,6 +132,7 @@ function startExpressApp(program, callback) {
         return res.status(404).send("Page not found");
       });
 
+      res.set('Content-Encoding', 'gzip');
       res.set('Cache-Control', 'max-age=' + (60 * 60 * 24 * 30));
       readStream.pipe(res);
     });

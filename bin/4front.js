@@ -29,7 +29,6 @@ program
 	.option('--virtual-host [virtualHost]', "The virtual host", "4front.dev")
   .option('--https', "Whether https is enabled on the virtual host")
 	.option('--jwt-token-secret [jwtTokenSecret]', 'The secret token used to generate JWT for authorization.', '4front_jwt_token_secret')
-  .option('--deployments-dir [deploymentsDir]', "The directory where deployments should be stored.", path.resolve(__dirname, "../deployments"))
 	.command('start')
 	.description("Start the 4front platform")
 	.action(runCommand('start'));
