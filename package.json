@@ -39,6 +39,7 @@
     "jade": "^1.9.2",
     "lodash": "^3.7.0",
     "memory-cache-stream": "^1.0.3",
+    "npm": "^2.9.0",
     "redis-streams": "^1.0.6",
     "s3rver": "0.0.2",
     "update-notifier": "^0.3.2"

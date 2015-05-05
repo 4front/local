@@ -4,6 +4,7 @@ var program = require('commander');
 var async = require('async');
 var fs = require('fs');
 var path = require('path');
+var debug = require('debug')('4front:local');
 var _ = require('lodash');
 var updateNotifier = require('update-notifier');
 var pkg = require('../package.json');
@@ -34,14 +35,15 @@ program
 	.action(runCommand('start'));
 
 program
-  .option('--name [name]', "The name of the npm package of the plugin")
-  .command('--install-plugin')
-  .description('Install a middleware plugin')
+  .option('--package [package]', "The name of the npm package of the plugin")
+  .command('install-plugin')
+  .description('Install a middleware plugin from NPM')
   .action(runCommand('plugin'));
 
 program.parse(process.argv);
 
 function runCommand(command) {
+	debug("run command %s", command);
 	return function() {
 		require('../commands/' + command)(program, function(err, done) {
 	    if (err) {

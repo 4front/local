@@ -56,7 +56,14 @@ function startExpressApp(program, callback) {
       // Normally this would be an absolute S3 url or a CDN whose origin is set to
       // the S3 bucket, but for 4front local just serving static assets out of
       // the same Express app.
-      staticAssetPath: '/deployments/'
+      staticAssetPath: '/deployments/',
+      starterTemplates: [
+        {
+          name: 'React Startify',
+          description: 'React JS application skeleton using Browserify, Gulp, and ES6',
+          url : 'https://github.com/4front/react-starterify/archive/master.zip'
+        }
+      ]
     });
     // other settings: sessionUserKey
 
@@ -191,17 +198,6 @@ function initialize(program, callback) {
         .setDirectory(path.resolve(__dirname, '../'))
         .run(cb);
     },
-    // function(cb) {
-    //   // Ensure the bucket exists
-    //   var bucket = s3Options.bucket;
-    //   var s3 = new AWS.S3(_.omit(s3Options, 'bucket'));
-    //   s3.createBucket({ACL: 'public-read', Bucket: bucket}, function(err) {
-    //   	if (err && err.code !== 'BucketAlreadyExists')
-    //   		return cb(err);
-    //
-    //   	cb();
-    //   });
-    // },
     function(cb) {
       // Not worrying about checking on windows for the time being.
       if (process.platform.indexOf('win32') !== -1)
