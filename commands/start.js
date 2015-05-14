@@ -117,7 +117,8 @@ function startExpressApp(program, callback) {
       virtualHost: app.settings.virtualHost
     });
 
-    app.settings.deployments = new S3Deployments(s3Options);
+    app.settings.storage = new require('4front-s3-storage')(s3Options);
+    app.settings.deployer = require('4front-deployer')(req.app.settings);
 
     app.settings.logger = require('4front-logger')({
       logger: '4front-logger',
