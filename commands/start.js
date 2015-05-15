@@ -8,7 +8,7 @@ var debug = require('debug')('4front:local:start');
 var _ = require('lodash');
 var ChildProcess = require('child_process');
 var DynamoDb = require('4front-dynamodb');
-var S3Deployments = require('4front-s3-deployments');
+var S3Storage = require('4front-s3-storage');
 var log = require('4front-logger');
 var memoryCache = require('memory-cache-stream');
 var redis = require('redis');
@@ -57,6 +57,8 @@ function startExpressApp(program, callback) {
       // the S3 bucket, but for 4front local just serving static assets out of
       // the same Express app.
       staticAssetPath: '/deployments/',
+
+      // TODO: This should live in a JSON file
       starterTemplates: [
         {
           name: 'React Startify',
@@ -93,8 +95,9 @@ function startExpressApp(program, callback) {
     // For local development, just using a naive identity provider that
     // echos back the username. In a production deployment you would use
     // something like 4front-active-directory.
-    app.settings.identityProvider = {
+    app.settings.identityProviders = [{
       name: 'local',
+      default: true,
       authenticate: function(username, password, callback) {
         debug("authenticate user %s with local identity provider", username);
         callback(null, {
@@ -102,12 +105,12 @@ function startExpressApp(program, callback) {
           username: username
         });
       }
-    };
+    }];
 
     // Configure the login provider
     app.settings.login = require('4front-login')({
       database: app.settings.database,
-      identityProvider: app.settings.identityProvider,
+      identityProviders: app.settings.identityProviders,
       jwtTokenSecret: program.jwtTokenSecret
     });
 
@@ -117,8 +120,8 @@ function startExpressApp(program, callback) {
       virtualHost: app.settings.virtualHost
     });
 
-    app.settings.storage = new require('4front-s3-storage')(s3Options);
-    app.settings.deployer = require('4front-deployer')(req.app.settings);
+    app.settings.storage = new S3Storage(s3Options);
+    app.settings.deployer = require('4front-deployer')(app.settings);
 
     app.settings.logger = require('4front-logger')({
       logger: '4front-logger',
