@@ -1,5 +1,5 @@
 {
-  "name": "4front-local-platform",
+  "name": "4front-local",
   "version": "1.0.0",
   "description": "Version of the 4front platform intended to run locally for testing",
   "main": "bin/4front.js",
@@ -17,19 +17,18 @@
   "preferGlobal": true,
   "author": "David Von Lehman <https://github.com/dvonlehman>",
   "repository": {
-    "url": "https://github.com/4front/local-template",
+    "url": "https://github.com/4front/local",
     "type": "git"
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "4front-api": "file:../api",
+    "4front-api": "git://github.com/4front/api.git",
     "4front-app-registry": "git://github.com/4front/app-registry.git",
-    "4front-apphost": "file:../apphost",
+    "4front-apphost": "git://github.com/4front/apphost.git",
     "4front-deployer": "git://github.com/4front/deployer.git",
     "4front-dynamodb": "git://github.com/4front/dynamodb.git",
-    "4front-logger": "file:../logger",
     "4front-login": "git://github.com/4front/login.git",
-    "4front-portal": "file:../portal",
+    "4front-portal": "git://github.com/4front/portal.git",
     "4front-s3-storage": "git://github.com/4front/s3-storage.git",
     "async": "^0.9.0",
     "aws-sdk": "^2.1.26",
