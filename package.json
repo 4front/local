@@ -27,6 +27,7 @@
     "4front-apphost": "git://github.com/4front/apphost.git",
     "4front-deployer": "git://github.com/4front/deployer.git",
     "4front-dynamodb": "git://github.com/4front/dynamodb.git",
+    "4front-logger": "git://github.com/4front/logger.git",
     "4front-login": "git://github.com/4front/login.git",
     "4front-portal": "git://github.com/4front/portal.git",
     "4front-s3-storage": "git://github.com/4front/s3-storage.git",
