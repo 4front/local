@@ -2,6 +2,7 @@ var express = require('express');
 var http = require('http');
 var S3rver = require('s3rver');
 var async = require('async');
+var urljoin = require('url-join');
 var fs = require('fs');
 var path = require('path');
 var debug = require('debug')('4front:local:start');
@@ -136,14 +137,16 @@ function startExpressApp(program, callback) {
     app.get('/deployments/:appId/:versionId/*', function(req, res, next) {
       var filePath = req.params[0];
 
-      var readStream = app.settings.deployments.readFileStream(
-        req.params.appId, req.params.versionId, filePath);
+      var readStream = app.settings.storage.readFileStream(
+        urljoin(req.params.appId, req.params.versionId, filePath));
 
       readStream.on('missing', function() {
         return res.status(404).send("Page not found");
       });
 
-      res.set('Content-Encoding', 'gzip');
+      if (_.contains( ['.css', '.js', '.json', '.txt', '.svg'], path.extname(filePath)))
+        res.set('Content-Encoding', 'gzip');
+
       res.set('Cache-Control', 'max-age=' + (60 * 60 * 24 * 30));
       readStream.pipe(res);
     });
