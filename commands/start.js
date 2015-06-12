@@ -11,7 +11,7 @@ var ChildProcess = require('child_process');
 var DynamoDb = require('4front-dynamodb');
 var S3Storage = require('4front-s3-storage');
 var log = require('4front-logger');
-var memoryCache = require('memory-cache-stream');
+var session = require('express-session');
 var redis = require('redis');
 var AWS = require('aws-sdk');
 var cookieParser = require('cookie-parser');
@@ -58,6 +58,7 @@ function startExpressApp(program, callback) {
       // the S3 bucket, but for 4front local just serving static assets out of
       // the same Express app.
       staticAssetPath: '/deployments/',
+      sessionSecret: '4front',
 
       // TODO: This should live in a JSON file
       starterTemplates: [
@@ -90,8 +91,12 @@ function startExpressApp(program, callback) {
     });
 
     // Assuming redis is listening on default port
-    // app.settings.cache = memoryCache();
-    app.settings.cache = redis.createClient();
+    app.settings.cache = redis.createClient(6379, "127.0.0.1");
+
+    var RedisStore = require('connect-redis')(session);
+    app.settings.sessionStore = new RedisStore({
+      client: app.settings.cache
+    });
 
     // For local development, just using a naive identity provider that
     // echos back the username. In a production deployment you would use
@@ -137,21 +142,11 @@ function startExpressApp(program, callback) {
     app.get('/deployments/:appId/:versionId/*', function(req, res, next) {
       var filePath = req.params[0];
 
-      var readStream = app.settings.storage.readFileStream(
-        urljoin(req.params.appId, req.params.versionId, filePath));
-
-      readStream.on('missing', function() {
-        return res.status(404).send("Page not found");
-      });
-
-      if (_.contains( ['.css', '.js', '.json', '.txt', '.svg'], path.extname(filePath)))
-        res.set('Content-Encoding', 'gzip');
-
-      res.set('Cache-Control', 'max-age=' + (60 * 60 * 24 * 30));
-      readStream.pipe(res);
+      app.settings.deployer.serveFile(req.params.appId,
+        req.params.versionId, req.params[0], res);
     });
 
-    app.use(app.settings.logger.request());
+    app.use(app.settings.logger.middleware.request);
 
     app.use(cookieParser());
 
@@ -166,11 +161,11 @@ function startExpressApp(program, callback) {
       verifyJwtSignature: false
     }));
 
-    app.use("/portal", require('4front-portal')({
+    app.use("/portal", require('4front-portal')(_.extend({}, app.settings, {
       basePath: '/portal',
       apiUrl: '/api',
       localInstance: true
-    }));
+    })));
 
     // app.use('/debug', require('4front-debug'));
     // app.use('/debug', function(req, res, next) {
